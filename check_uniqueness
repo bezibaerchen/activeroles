@@ -1,0 +1,72 @@
+## Please check GitHub repository for updates to that script: https://github.com/bezibaerchen/activeroles
+
+function checkUniqueness($Request) 
+{    
+    ## Define AD root domain
+	$RootDomain = "DC=bar,DC=foo"
+    $Attribute = $Context.Parameter("Attribute1")    
+    if ($Attribute -ne "Unused") 
+    {        
+        try { $Value = $Request.Get($Attribute) } catch { $Value='' }        
+        if (($Value -ne '') -and ($Value -ne $null)) 
+        {            
+            $Result = Get-QADUser -SearchRoot $RootDomain -SearchScope SubTree -LDAPFilter "($Attribute=$Value)" -Proxy            
+            if ($Result -ne $null) 
+            {                 
+                $AttribDesc = $Context.Parameter("Attribute1Desc")                
+                throw "Administrative Policy: $AttribDesc $Value is already set on $Result"            
+            }        
+        }
+    }            
+
+    $Attribute = $Context.Parameter("Attribute2")    
+    if ($Attribute -ne "Unused") 
+    {        
+        try { $Value = $Request.Get($Attribute) } catch { $Value='' }        
+        if (($Value -ne '') -and ($Value -ne $null)) 
+        {            
+            $Result = Get-QADUser -SearchRoot $RootDomain -SearchScope SubTree -LDAPFilter "($Attribute=$Value)" -Proxy            
+            if ($Result -ne $null) 
+            {                 
+                $AttribDesc = $Context.Parameter("Attribute2Desc")                
+                throw "Administrative Policy: $AttribDesc $Value is already set on $Result"            
+            }        
+        }
+    }            
+
+    return "OK"                
+}
+
+function onPreCreate($Request)
+{
+    $return = checkUniqueness($Request)
+}
+
+function onPreModify($Request)
+{
+    $return = checkUniqueness($Request)
+}
+
+function onInit($context)
+{
+    $var = $context.AddParameter("Attribute1")
+    $var.DefaultValue = "Unused"    
+    $var.Description = "LDAP displayname of attribute #1 for which to check uniqueness"    
+    $var.MultiValued = $false    
+    $var.Required = $true        
+    $var = $context.AddParameter("Attribute1Desc")    
+    $var.DefaultValue = "Unused"    
+    $var.Description = "Description of attribute #1 for which to check uniqueness"    
+    $var.MultiValued = $false    
+    $var.Required = $true    
+    $var = $context.AddParameter("Attribute2")
+    $var.DefaultValue = "Unused"    
+    $var.Description = "LDAP displayname of attribute #2 for which to check uniqueness"    
+    $var.MultiValued = $false    
+    $var.Required = $true        
+    $var = $context.AddParameter("Attribute2Desc")    
+    $var.DefaultValue = "Unused"    
+    $var.Description = "Description of attribute #2 for which to check uniqueness"    
+    $var.MultiValued = $false    
+    $var.Required = $true    
+}
