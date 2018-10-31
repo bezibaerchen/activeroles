@@ -1,0 +1,15 @@
+## Please check GitHub repository for updates to that script: https://github.com/bezibaerchen/activeroles
+## apply this script via a policy to ensure authenticated senders are not needed for newly created objects
+
+function onPostCreate($Request)
+{
+    Set-QADGroup $Request.Name -ObjectAttributes @{msExchRequireAuthToSendTo = $FALSE}
+}
+
+
+
+
+
+
+
+
